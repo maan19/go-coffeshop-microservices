@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/maan19/product-api/product-api/data"
 	"github.com/maan19/product-api/product-api/handlers"
 )
 
@@ -19,19 +20,26 @@ var bindAddress = flag.String("BIND_ADDRESS", ":9090", "Bind address for the ser
 func main() {
 	flag.Parse()
 	l := log.New(os.Stdout, "products-api", log.LstdFlags)
-	ph := handlers.NewProducts(l)
+	v := data.NewValidation()
+	ph := handlers.NewProducts(l, v)
 
 	sm := mux.NewRouter()
-	getRouter := sm.Methods("GET").Subrouter()
-	getRouter.HandleFunc("/", ph.GetProducts)
 
-	putRouter := sm.Methods("PUT").Subrouter()
-	putRouter.HandleFunc("/{id:[0-9]+}", ph.UpdateProducts)
-	putRouter.Use(ph.MiddlewareProductValidation)
+	// handlers for API
+	getR := sm.Methods(http.MethodGet).Subrouter()
+	getR.HandleFunc("/products", ph.ListAll)
+	getR.HandleFunc("/products/{id:[0-9]+}", ph.ListSingle)
 
-	postRouter := sm.Methods("POST").Subrouter()
-	postRouter.HandleFunc("/", ph.AddProduct)
-	postRouter.Use(ph.MiddlewareProductValidation)
+	putR := sm.Methods(http.MethodPut).Subrouter()
+	putR.HandleFunc("/products", ph.Update)
+	putR.Use(ph.MiddlewareValidateProduct)
+
+	postR := sm.Methods(http.MethodPost).Subrouter()
+	postR.HandleFunc("/products", ph.Create)
+	postR.Use(ph.MiddlewareValidateProduct)
+
+	deleteR := sm.Methods(http.MethodDelete).Subrouter()
+	deleteR.HandleFunc("/products/{id:[0-9]+}", ph.Delete)
 
 	s := http.Server{
 		Addr:         *bindAddress,
