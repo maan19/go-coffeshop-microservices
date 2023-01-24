@@ -5,8 +5,10 @@ go 1.19
 require (
 	github.com/go-openapi/runtime v0.25.0
 	github.com/go-playground/validator v9.31.0+incompatible
+	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/stretchr/testify v1.8.1
+	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
 )
 
 require (
@@ -27,7 +29,6 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
-	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
