@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-openapi/runtime/middleware"
+	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/maan19/product-api/product-api/data"
 	"github.com/maan19/product-api/product-api/handlers"
@@ -49,9 +50,12 @@ func main() {
 	getR.Handle("/docs", sh)
 	getR.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
+	// CORS
+	ch := gohandlers.CORS(gohandlers.AllowedOrigins([]string{"*"}))
+
 	s := http.Server{
 		Addr:         *bindAddress,
-		Handler:      sm,
+		Handler:      ch(sm),
 		ErrorLog:     l,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
