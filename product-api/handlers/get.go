@@ -6,6 +6,12 @@ import (
 	"github.com/maan19/product-api/product-api/data"
 )
 
+// swagger:route GET /products products listProducts
+// Return a list of products from the database
+// Responses:
+//	 200: productsResponse
+
+// Returns all products from db
 func (p *Products) ListAll(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("[DEBUG] get all records")
 
@@ -17,6 +23,13 @@ func (p *Products) ListAll(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// swagger:route GET /products/{id} products listSingleProduct
+// Return a product from the database
+// Responses:
+//	 200: productResponse
+//	 404: errorResponse
+
+// ListSingle handles GET requests
 func (p *Products) ListSingle(rw http.ResponseWriter, r *http.Request) {
 	id := getProductID(r)
 	p.l.Println("[DEBUG] get single record for id ", id)
