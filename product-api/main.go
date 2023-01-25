@@ -13,8 +13,8 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/maan19/product-api/product-api/data"
-	"github.com/maan19/product-api/product-api/handlers"
+	"github.com/maan19/go-coffeshop-microservices/product-api/data"
+	"github.com/maan19/go-coffeshop-microservices/product-api/handlers"
 )
 
 var bindAddress = flag.String("BIND_ADDRESS", ":9090", "Bind address for the server")

@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/maan19/product-api/product-api/data"
+	"github.com/maan19/go-coffeshop-microservices/product-api/data"
 )
 
 type Products struct {

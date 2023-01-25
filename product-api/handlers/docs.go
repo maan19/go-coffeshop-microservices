@@ -15,7 +15,7 @@
 // swagger:meta
 package handlers
 
-import "github.com/maan19/product-api/product-api/data"
+import "github.com/maan19/go-coffeshop-microservices/product-api/data"
 
 //
 // NOTE: Types defined here are purely for documentation purposes

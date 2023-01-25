@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/maan19/product-api/product-api/data"
+	"github.com/maan19/go-coffeshop-microservices/product-api/data"
 )
 
 // swagger:route POST /products products createProduct
