@@ -39,8 +39,9 @@ func main() {
 		panic(err)
 	}
 
-	//New file handler with logger and file store injected.
+	//Create handlers and middlewares
 	fh := handlers.NewFiles(l, stor)
+	gzipm := handlers.GzipHandler{}
 
 	//Mux router
 	sm := mux.NewRouter()
@@ -56,6 +57,9 @@ func main() {
 	gh := sm.Methods(http.MethodGet).Subrouter()
 	gh.Handle("/images/{id:[0-9]+}/{filename:[a-zA-Z]+\\.[a-z]{3}}",
 		http.StripPrefix("/images/", http.FileServer(http.Dir("./imagestore"))))
+
+	//use gzipmiddleware on get image router
+	gh.Use(gzipm.GzipMiddleware)
 
 	//create a new server
 	s := http.Server{
