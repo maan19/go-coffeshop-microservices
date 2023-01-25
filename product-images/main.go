@@ -9,13 +9,14 @@ import (
 	"os/signal"
 	"time"
 
+	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-hclog"
 	"github.com/maan19/go-coffeshop-microservices/product-images/files"
 	"github.com/maan19/go-coffeshop-microservices/product-images/handlers"
 )
 
-var bindAddress = flag.String("BIND_ADDRESS", ":9090", "server port")
+var bindAddress = flag.String("BIND_ADDRESS", ":9091", "server port")
 var logLevel = flag.String("LOG_LEVEL", "debug", "log-level for server- [debug|info|trace]")
 var basePath = flag.String("BASE_PATH", "./imagestore", "path to store images")
 
@@ -44,9 +45,12 @@ func main() {
 	//Mux router
 	sm := mux.NewRouter()
 
+	ch := gohandlers.CORS(gohandlers.AllowedOrigins([]string{"*"}))
+
 	//post image route
 	ph := sm.Methods(http.MethodPost).Subrouter()
-	ph.HandleFunc("/images/{id:[0-9]+}/{filename:[a-zA-Z]+\\.[a-z]{3}}", fh.ServeHTTP)
+	ph.HandleFunc("/images/{id:[0-9]+}/{filename:[a-zA-Z]+\\.[a-z]{3}}", fh.UploadREST)
+	ph.HandleFunc("/", fh.UploadMultipart)
 
 	//get image route
 	gh := sm.Methods(http.MethodGet).Subrouter()
@@ -56,7 +60,7 @@ func main() {
 	//create a new server
 	s := http.Server{
 		Addr:         *bindAddress,
-		Handler:      sm,
+		Handler:      ch(sm),
 		ErrorLog:     sl,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
