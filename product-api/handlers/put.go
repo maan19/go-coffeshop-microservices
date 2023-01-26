@@ -15,10 +15,11 @@ import (
 //	 404: errorResponse
 //	 422: errorValidation
 func (p *Products) Update(rw http.ResponseWriter, r *http.Request) {
-	p.l.Println("Handle PUT Product")
+	rw.Header().Add("Content-Type", "application/json")
+	p.l.Debug("Handle PUT Product")
 
 	prod := r.Context().Value(KeyProduct).(data.Product)
-	err := data.UpdateProduct(prod)
+	err := p.productsDB.UpdateProduct(prod)
 	if err == data.ErrProductNotFound {
 		rw.WriteHeader(http.StatusNotFound)
 		data.ToJSON(&GenericError{Message: "Product not found in database"}, rw)

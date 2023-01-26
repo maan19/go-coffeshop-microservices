@@ -2,27 +2,26 @@ package handlers
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/maan19/go-coffeshop-microservices/currency/protos/currency/pb"
+	"github.com/hashicorp/go-hclog"
 	"github.com/maan19/go-coffeshop-microservices/product-api/data"
 )
 
 type Products struct {
-	l  *log.Logger
-	v  *data.Validation
-	cc pb.CurrencyClient
+	l          hclog.Logger
+	v          *data.Validation
+	productsDB *data.ProductsDB
 }
 
-func NewProducts(l *log.Logger, v *data.Validation, cc pb.CurrencyClient) *Products {
-	return &Products{l, v, cc}
+func NewProducts(l hclog.Logger, v *data.Validation, pdb *data.ProductsDB) *Products {
+	return &Products{l, v, pdb}
 }
 
 // ErrInvalidProductPath is an error message when the product path is not valid
-var ErrInvalidProductPath = fmt.Errorf("Invalid Path, path should be /products/[id]")
+var ErrInvalidProductPath = fmt.Errorf("invalid Path, path should be /products/[id]")
 
 type contextKey string
 

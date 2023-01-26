@@ -10,7 +10,7 @@ message RateRequest {
 }
 
 message RateResponse {
-    float rate = 1;
+    double rate = 1;
 }
 
 service Currency {

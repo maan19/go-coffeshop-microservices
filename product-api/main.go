@@ -13,6 +13,7 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/hashicorp/go-hclog"
 	"github.com/maan19/go-coffeshop-microservices/currency/protos/currency/pb"
 	"github.com/maan19/go-coffeshop-microservices/product-api/data"
 	"github.com/maan19/go-coffeshop-microservices/product-api/handlers"
@@ -23,7 +24,7 @@ var bindAddress = flag.String("BIND_ADDRESS", ":9090", "Bind address for the ser
 
 func main() {
 	flag.Parse()
-	l := log.New(os.Stdout, "products-api", log.LstdFlags)
+	l := hclog.Default()
 	v := data.NewValidation()
 
 	//create currency client
@@ -33,14 +34,20 @@ func main() {
 	}
 	cc := pb.NewCurrencyClient(conn)
 
-	//produc-api handler
-	ph := handlers.NewProducts(l, v, cc)
+	//new database instance
+	db := data.NewProductsDB(cc, l)
+
+	//create produc-api handler
+	ph := handlers.NewProducts(l, v, db)
 
 	sm := mux.NewRouter()
 
 	// handlers for API
 	getR := sm.Methods(http.MethodGet).Subrouter()
+	getR.HandleFunc("/products", ph.ListAll).Queries("currency", "{[A-Z]{3}}")
 	getR.HandleFunc("/products", ph.ListAll)
+
+	getR.HandleFunc("/products/{id:[0-9]+}", ph.ListSingle).Queries("currency", "{[A-Z]{3}}")
 	getR.HandleFunc("/products/{id:[0-9]+}", ph.ListSingle)
 
 	putR := sm.Methods(http.MethodPut).Subrouter()
@@ -67,16 +74,16 @@ func main() {
 	s := http.Server{
 		Addr:         *bindAddress,
 		Handler:      ch(sm),
-		ErrorLog:     l,
+		ErrorLog:     l.StandardLogger(&hclog.StandardLoggerOptions{}),
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 
 	go func() {
-		l.Println("Starting server on port 9090")
+		l.Info("Starting server on port 9090")
 		if err := s.ListenAndServe(); err != nil {
-			l.Printf("Error starting server %s\n", err)
+			l.Error("Error starting server %s\n", err)
 			os.Exit(1)
 		}
 	}()

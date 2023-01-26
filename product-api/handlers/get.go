@@ -1,10 +1,8 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 
-	"github.com/maan19/go-coffeshop-microservices/currency/protos/currency/pb"
 	"github.com/maan19/go-coffeshop-microservices/product-api/data"
 )
 
@@ -15,13 +13,21 @@ import (
 
 // Returns all products from db
 func (p *Products) ListAll(rw http.ResponseWriter, r *http.Request) {
-	p.l.Println("[DEBUG] get all records")
+	p.l.Debug("get all records")
 
-	prods := data.GetProducts()
+	rw.Header().Add("Content-Type", "application/json")
 
-	err := data.ToJSON(prods, rw)
+	cur := r.URL.Query().Get("currency")
+
+	prods, err := p.productsDB.GetProducts(cur)
 	if err != nil {
-		p.l.Println(err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+		return
+	}
+	err = data.ToJSON(prods, rw)
+	if err != nil {
+		p.l.Error("error serializing products", err)
 	}
 }
 
@@ -33,42 +39,33 @@ func (p *Products) ListAll(rw http.ResponseWriter, r *http.Request) {
 
 // ListSingle handles GET requests
 func (p *Products) ListSingle(rw http.ResponseWriter, r *http.Request) {
-	id := getProductID(r)
-	p.l.Println("[DEBUG] get single record for id ", id)
+	rw.Header().Add("Content-Type", "application/json")
 
-	prod, err := data.GetProductByID(id)
+	id := getProductID(r)
+	cur := r.URL.Query().Get("currency")
+
+	p.l.Debug("get single record for id ", id)
+
+	prod, err := p.productsDB.GetProductByID(id, cur)
 
 	switch err {
 	case nil:
 
 	case data.ErrProductNotFound:
-		p.l.Println("[ERROR] product not found")
+		p.l.Error("product not found")
 		rw.WriteHeader(http.StatusNotFound)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 		return
 
 	default:
-		p.l.Println("[ERROR] fetching product", err)
+		p.l.Error("error fetching product", err)
 		rw.WriteHeader(http.StatusInternalServerError)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 		return
 	}
 
-	//call the currency-client
-	rr := &pb.RateRequest{
-		Base:        pb.Currencies(pb.Currencies_value["EUR"]),
-		Destination: pb.Currencies(pb.Currencies_value["GBP"]),
-	}
-	rs, err := p.cc.GetRate(context.Background(), rr)
-	if err != nil {
-		p.l.Println("[ERROR] error getting rate", err)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-	}
-
-	prod.Price = prod.Price * rs.Rate
-
 	err = data.ToJSON(prod, rw)
 	if err != nil {
-		p.l.Println(err)
+		p.l.Error("error serializing product", err)
 	}
 }

@@ -15,10 +15,11 @@ import (
 //	 422: errorValidation
 //	 501: errorResponse
 func (p *Products) Create(rw http.ResponseWriter, r *http.Request) {
-	p.l.Println("Handle POST Products")
+	rw.Header().Add("Content-Type", "application/json")
+	p.l.Debug("Handle POST Products")
 	prod := r.Context().Value(KeyProduct).(data.Product)
 
-	p.l.Printf("[DEBUG] Inserting product: %#v\n", prod)
-	data.AddProduct(prod)
+	p.l.Debug("Inserting product: %#v\n", prod)
+	p.productsDB.AddProduct(prod)
 	//return success? - that's done automatically
 }

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/hashicorp/go-hclog"
+	"github.com/maan19/go-coffeshop-microservices/currency/data"
 	"github.com/maan19/go-coffeshop-microservices/currency/protos/currency/pb"
 	"github.com/maan19/go-coffeshop-microservices/currency/server"
 	"google.golang.org/grpc"
@@ -13,9 +14,12 @@ import (
 
 func main() {
 	log := hclog.Default()
-
+	rates, err := data.NewEchangeRates(log)
+	if err != nil {
+		log.Error("Unable to get rates", err)
+	}
 	gs := grpc.NewServer()
-	cs := server.NewCurrency(log)
+	cs := server.NewCurrency(rates, log)
 
 	pb.RegisterCurrencyServer(gs, cs)
 
