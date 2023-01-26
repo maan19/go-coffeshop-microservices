@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
+	"github.com/maan19/go-coffeshop-microservices/currency/protos/currency/pb"
 	"github.com/maan19/go-coffeshop-microservices/product-api/data"
 )
 
@@ -51,6 +53,20 @@ func (p *Products) ListSingle(rw http.ResponseWriter, r *http.Request) {
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 		return
 	}
+
+	//call the currency-client
+	rr := &pb.RateRequest{
+		Base:        pb.Currencies(pb.Currencies_value["EUR"]),
+		Destination: pb.Currencies(pb.Currencies_value["GBP"]),
+	}
+	rs, err := p.cc.GetRate(context.Background(), rr)
+	if err != nil {
+		p.l.Println("[ERROR] error getting rate", err)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+	}
+
+	prod.Price = prod.Price * rs.Rate
+
 	err = data.ToJSON(prod, rw)
 	if err != nil {
 		p.l.Println(err)

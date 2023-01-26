@@ -13,8 +13,10 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/maan19/go-coffeshop-microservices/currency/protos/currency/pb"
 	"github.com/maan19/go-coffeshop-microservices/product-api/data"
 	"github.com/maan19/go-coffeshop-microservices/product-api/handlers"
+	"google.golang.org/grpc"
 )
 
 var bindAddress = flag.String("BIND_ADDRESS", ":9090", "Bind address for the server")
@@ -23,7 +25,16 @@ func main() {
 	flag.Parse()
 	l := log.New(os.Stdout, "products-api", log.LstdFlags)
 	v := data.NewValidation()
-	ph := handlers.NewProducts(l, v)
+
+	//create currency client
+	conn, err := grpc.Dial("localhost:9092", grpc.WithInsecure())
+	if err != nil {
+		panic(err)
+	}
+	cc := pb.NewCurrencyClient(conn)
+
+	//produc-api handler
+	ph := handlers.NewProducts(l, v, cc)
 
 	sm := mux.NewRouter()
 

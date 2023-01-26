@@ -7,16 +7,18 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/maan19/go-coffeshop-microservices/currency/protos/currency/pb"
 	"github.com/maan19/go-coffeshop-microservices/product-api/data"
 )
 
 type Products struct {
-	l *log.Logger
-	v *data.Validation
+	l  *log.Logger
+	v  *data.Validation
+	cc pb.CurrencyClient
 }
 
-func NewProducts(l *log.Logger, v *data.Validation) *Products {
-	return &Products{l, v}
+func NewProducts(l *log.Logger, v *data.Validation, cc pb.CurrencyClient) *Products {
+	return &Products{l, v, cc}
 }
 
 // ErrInvalidProductPath is an error message when the product path is not valid
