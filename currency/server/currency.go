@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"io"
+	"time"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/maan19/go-coffeshop-microservices/currency/data"
@@ -27,4 +29,31 @@ func (c *Currency) GetRate(ctx context.Context, rr *pb.RateRequest) (*pb.RateRes
 		return nil, err
 	}
 	return &pb.RateResponse{Rate: rate}, nil
+}
+
+func (c *Currency) SubscribeRates(src pb.Currency_SubscribeRatesServer) error {
+
+	go func() {
+		for {
+			rr, err := src.Recv()
+			if err == io.EOF {
+				c.log.Info("Client closed connection")
+				break
+			}
+			if err != nil { //Connection forcibly closed.
+				c.log.Error("Receive error", "err", err)
+				break
+			}
+			c.log.Info("Client request received", "request", rr)
+		}
+	}()
+
+	for {
+		err := src.Send(&pb.RateResponse{Rate: 12.1})
+		if err != nil {
+			c.log.Error("Send error", "err", err)
+			return err
+		}
+		time.Sleep(5 * time.Second)
+	}
 }
