@@ -3,8 +3,10 @@ package data
 import (
 	"encoding/xml"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/hashicorp/go-hclog"
 )
@@ -37,6 +39,34 @@ func (e *EchangeRates) GetRates(base, dest string) (float64, error) {
 		return 0, fmt.Errorf("dest rate not found: %s", dest)
 	}
 	return dr / br, nil
+}
+
+func (e *EchangeRates) MonitorRates(interval time.Duration) chan struct{} {
+	ret := make(chan struct{})
+	go func() {
+		ticker := time.NewTicker(interval)
+		for {
+			select {
+			case <-ticker.C:
+				for k, v := range e.rates {
+
+					change := (rand.Float64() / 10)
+					direction := rand.Intn(1)
+
+					if direction == 0 {
+						change = 1 - change
+					} else {
+						change = 1 + change
+					}
+					e.rates[k] = v * change
+				}
+
+				ret <- struct{}{}
+			}
+		}
+	}()
+
+	return ret
 }
 
 func (e *EchangeRates) getRates() error {

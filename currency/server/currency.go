@@ -16,6 +16,12 @@ type Currency struct {
 }
 
 func NewCurrency(r *data.EchangeRates, l hclog.Logger) *Currency {
+	go func() {
+		ru := r.MonitorRates(5 * time.Second)
+		for range ru {
+			l.Info("got updated rates")
+		}
+	}()
 	return &Currency{
 		log:   l,
 		rates: r,
@@ -32,7 +38,7 @@ func (c *Currency) GetRate(ctx context.Context, rr *pb.RateRequest) (*pb.RateRes
 }
 
 func (c *Currency) SubscribeRates(src pb.Currency_SubscribeRatesServer) error {
-
+	//handle client messages
 	go func() {
 		for {
 			rr, err := src.Recv()
@@ -48,6 +54,7 @@ func (c *Currency) SubscribeRates(src pb.Currency_SubscribeRatesServer) error {
 		}
 	}()
 
+	//handler server responses
 	for {
 		err := src.Send(&pb.RateResponse{Rate: 12.1})
 		if err != nil {
